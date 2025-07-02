@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Rover Control</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            text-align: center;
+        }
+        .camera-feed {
+            display: inline-block;
+            margin: 10px;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            margin: 5px;
+        }
+    </style>
+</head>
+<body>
+    <h1>rovershot 🕶️</h1>
+
+    <!-- Transmisión de cámaras -->
+    <div style="display:flex; justify-content: space-around;">
+        <div class="camera-feed">
+            <img src="http://{{ request.host }}/video_feed/0" width="320" />
+        </div>
+        <div class="camera-feed">
+            <img src="http://{{ request.host }}/video_feed/1" width="320" />
+        </div>
+    </div>
+
+    <!-- Control manual con botones -->
+    <h2>Manual Control</h2>
+    <button onclick="sendCommand('forward')">↑ Avanzar</button><br><br>
+    <button onclick="sendCommand('left')">← Izquierda</button>
+    <button onclick="sendCommand('stop')">⏹ Detener</button>
+    <button onclick="sendCommand('right')">Derecha →</button><br><br>
+    <button onclick="sendCommand('backward')">↓ Retroceder</button>
+
+    <!-- Control con teclado -->
+    <h2>Control con Teclado</h2>
+    <p>
+        Usa las flechas del teclado para controlar el rover.
+    </p>
+
+    <script>
+        let leftSpeed = 0;
+        let rightSpeed = 0;
+
+        // Función para enviar comandos al servidor
+        function sendCommand(cmd) {
+            fetch(`http://{{ request.host }}/control/${cmd}`, { method: 'GET' });
+        }
+
+        // Manejador de eventos de teclado
+        document.addEventListener('keydown', function(event) {
+            switch (event.key) {
+                case 'ArrowUp':   // Flecha arriba (adelante)
+                    leftSpeed = 100;
+                    rightSpeed = 100;
+                    break;
+                case 'ArrowDown': // Flecha abajo (atras)
+                    leftSpeed = -100;
+                    rightSpeed = -100;
+                    break;
+                case 'ArrowLeft': // Flecha izquierda
+                    leftSpeed = -50;
+                    rightSpeed = 50;
+                    break;
+                case 'ArrowRight': // Flecha derecha
+                    leftSpeed = 50;
+                    rightSpeed = -50;
+                    break;
+            }
+
+            // Enviar comandos mixtos
+            if (leftSpeed !== 0 || rightSpeed !== 0) {
+                fetch(`http://{{ request.host }}/control/mix?left=${leftSpeed}&right=${rightSpeed}`, { method: 'GET' });
+            }
+        });
+
+        document.addEventListener('keyup', function(event) {
+            // Al soltar cualquier tecla, detener el rover
+            leftSpeed = 0;
+            rightSpeed = 0;
+            fetch(`http://{{ request.host }}/control/stop`, { method: 'GET' });
+        });
+    </script>
+</body>
+</html>
