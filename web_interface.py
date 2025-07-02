@@ -1,5 +1,3 @@
-# web_interface.py
-
 from flask import Flask, render_template, Response, request
 from picamera2 import Picamera2
 import cv2
@@ -48,6 +46,13 @@ def control(command):
     if command in speeds:
         l, r = speeds[command]
         move(l, r)
+    return "OK"
+
+@app.route('/control/mix')
+def control_mix():
+    left = int(request.args.get('left', 0))
+    right = int(request.args.get('right', 0))
+    move(left, right)
     return "OK"
 
 # === Recepción de joystick por UDP ===
